@@ -1,0 +1,2 @@
+"""DMX Desk application package."""
+

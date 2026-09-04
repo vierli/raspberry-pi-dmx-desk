@@ -1,0 +1,17 @@
+{
+  "fixtures": [
+    {
+      "id": 1,
+      "name": "Scheinwerfer links",
+      "address": 1,
+      "channels": { "red": 0, "green": 1, "blue": 2 }
+    },
+    {
+      "id": 2,
+      "name": "Scheinwerfer rechts",
+      "address": 4,
+      "channels": { "red": 0, "green": 1, "blue": 2 }
+    }
+  ]
+}
+

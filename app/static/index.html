@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0b0d0f" />
+    <title>DMX Desk</title>
+    <meta name="description" content="Lokale Lichtsteuerung für zwei RGB-DMX-Scheinwerfer" />
+    <link rel="stylesheet" href="/static/app.css" />
+    <script src="/static/app.js" defer></script>
+  </head>
+  <body>
+    <div class="ambient ambient-one"></div>
+    <div class="ambient ambient-two"></div>
+    <main class="shell">
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+          <div>
+            <p class="eyebrow">RASPBERRY PI · DMX512</p>
+            <h1>DMX Desk</h1>
+          </div>
+        </div>
+        <div id="connection" class="connection is-waiting" role="status" aria-live="polite">
+          <span class="status-dot"></span>
+          <span id="connection-label">Verbindung wird geprüft</span>
+        </div>
+      </header>
+
+      <section class="intro" aria-labelledby="page-title">
+        <div>
+          <p class="eyebrow">LIVE CONTROL</p>
+          <h2 id="page-title">Licht, auf den Punkt.</h2>
+        </div>
+        <p>Zwei Scheinwerfer. Direkte Kontrolle. Jede Änderung wird sofort über DMX gesendet.</p>
+      </section>
+
+      <section id="error-banner" class="error-banner" hidden role="alert">
+        <strong>DMX-Ausgang nicht erreichbar.</strong>
+        <span id="error-detail">Prüfe UART und Verkabelung.</span>
+      </section>
+
+      <section class="workspace" aria-label="Lichtsteuerung">
+        <div id="fixtures" class="fixtures" aria-live="polite">
+          <article class="fixture-card skeleton"></article>
+          <article class="fixture-card skeleton"></article>
+        </div>
+
+        <aside class="master-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">MASTER</p>
+              <h3>Gesamtsteuerung</h3>
+            </div>
+            <span class="universe-badge">U1</span>
+          </div>
+
+          <label class="master-color-label" for="master-color">Gemeinsame Farbe</label>
+          <div class="master-color-row">
+            <input id="master-color" type="color" value="#f4b942" aria-label="Gemeinsame Farbe wählen" />
+            <output id="master-color-value" for="master-color">#F4B942</output>
+          </div>
+
+          <div class="master-actions">
+            <button id="all-on" class="button button-primary" type="button">
+              <span class="power-icon" aria-hidden="true">⌁</span> Beide einschalten
+            </button>
+            <button id="all-off" class="button button-secondary" type="button">Beide ausschalten</button>
+          </div>
+
+          <button id="blackout" class="blackout" type="button" aria-pressed="false">
+            <span class="blackout-icon" aria-hidden="true">×</span>
+            <span><strong>Blackout</strong><small>DMX-Ausgabe sofort auf null</small></span>
+          </button>
+
+          <dl class="dmx-meta">
+            <div><dt>Universum</dt><dd>1</dd></div>
+            <div><dt>Refresh</dt><dd id="refresh-rate">–</dd></div>
+            <div><dt>Ausgang</dt><dd id="dmx-port">–</dd></div>
+          </dl>
+        </aside>
+      </section>
+
+      <footer>
+        <span>Lokale Steuerung</span>
+        <span class="footer-separator">•</span>
+        <span id="last-sync">Noch nicht synchronisiert</span>
+      </footer>
+    </main>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>
+
