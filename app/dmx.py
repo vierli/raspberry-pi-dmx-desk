@@ -89,6 +89,8 @@ class DMXUniverse:
             for fixture_id, fixture in self.fixtures.items():
                 state = self.states[fixture_id]
                 active = state.enabled and not blackout
+                for offset, value in fixture.fixed_channels:
+                    channels[fixture.address + offset] = value if not blackout else 0
                 red, green, blue = parse_hex_color(state.color) if active else (0, 0, 0)
                 channels[fixture.address + fixture.red] = red
                 channels[fixture.address + fixture.green] = green

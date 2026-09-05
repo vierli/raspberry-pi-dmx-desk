@@ -9,7 +9,7 @@ Die Anwendung bindet sich an `0.0.0.0:8000` und ist damit von Handy, Tablet oder
 - Raspberry Pi 5 mit aktuellem Raspberry Pi OS (64 Bit empfohlen)
 - Velleman VMA432 DMX512-Modul aus der [Herstelleranleitung](https://m.media-amazon.com/images/I/81mam8nSMHL.pdf)
 - drei Female-to-Female-Jumperkabel für 5 V, GND und TX
-- zwei RGB-DMX-Scheinwerfer mit 3-poligem XLR
+- zwei RGB-DMX-Scheinwerfer aus der [Scheinwerfer-Anleitung](https://m.media-amazon.com/images/I/81isdaeK57L.pdf) mit 3-poligem XLR
 - echte DMX-Kabel (120 Ohm), kein Mikrofonkabel
 - 120-Ohm-DMX-Abschlussstecker am letzten Gerät
 - separate, passende Netzversorgung für beide Scheinwerfer
@@ -69,18 +69,30 @@ Raspberry Pi 5 TX ──> VMA432 ──XLR──> DMX IN Scheinwerfer 1
                                                    DMX OUT ──> 120-Ohm-Terminator
 ```
 
-Beide Scheinwerfer am Gerät in den **3-Kanal-RGB-Modus** stellen:
+Die Scheinwerfer verwenden laut ihrer Anleitung einen festen **7-Kanal-DMX-Modus**. An jedem Gerät mit `MENU` den DMX-Modus wählen und folgende Anzeige einstellen:
 
-| Gerät | DMX-Startadresse | Kanäle |
-|---|---:|---|
-| Scheinwerfer 1 | 1 | 1 = Rot, 2 = Grün, 3 = Blau |
-| Scheinwerfer 2 | 4 | 4 = Rot, 5 = Grün, 6 = Blau |
+| Gerät | Anzeige | DMX-Startadresse | Belegte Kanäle |
+|---|---:|---:|---:|
+| Scheinwerfer 1 | `d001` | 1 | 1-7 |
+| Scheinwerfer 2 | `d008` | 8 | 8-14 |
 
-Die genaue Tastenfolge für Modus und Adresse steht im Handbuch des jeweiligen Scheinwerfers. `A001`, `d001` oder ähnlich bezeichnet häufig Adresse 1, ist aber herstellerabhängig.
+Mit `UP` und `DOWN` die Adresse wählen und mit `ENTER` speichern. Beide Geräte bleiben eigenständig adressiert; sie dürfen für diese Anwendung nicht als Master/Slave-Paar im Automatikmodus betrieben werden.
 
-### Abweichende Kanalbelegung
+### Kanalbelegung dieser Scheinwerfer
 
-Hat ein Scheinwerfer beispielsweise Kanal 1 = Master-Dimmer und danach R/G/B, `config/fixtures.json` so anpassen:
+| Relativer Kanal | Scheinwerfer 1 | Scheinwerfer 2 | Funktion | Von der Anwendung |
+|---:|---:|---:|---|---|
+| 1 | 1 | 8 | Master-Dimmer | 255 bei Ein, 0 bei Aus |
+| 2 | 2 | 9 | Rot | 0-255 gemäß Farbauswahl |
+| 3 | 3 | 10 | Grün | 0-255 gemäß Farbauswahl |
+| 4 | 4 | 11 | Blau | 0-255 gemäß Farbauswahl |
+| 5 | 5 | 12 | Strobe | 0, damit kein Blitzen aktiv ist |
+| 6 | 6 | 13 | Betriebsart | 0, damit die Direktkanäle 1-5 gelten |
+| 7 | 7 | 14 | Effektgeschwindigkeit | 0, im Direktmodus ohne Wirkung |
+
+### Konfiguration
+
+Die mitgelieferte `config/fixtures.json` ist bereits exakt auf den 7-Kanal-Modus dieser Scheinwerfer eingestellt. Der erste Eintrag sieht so aus:
 
 ```json
 {
@@ -88,11 +100,12 @@ Hat ein Scheinwerfer beispielsweise Kanal 1 = Master-Dimmer und danach R/G/B, `c
   "name": "Scheinwerfer links",
   "address": 1,
   "channels": { "dimmer": 0, "red": 1, "green": 2, "blue": 3 },
+  "fixed_channels": { "4": 0, "5": 0, "6": 0 },
   "dimmer_on": 255
 }
 ```
 
-Die Offsets in `channels` sind nullbasiert: Offset 0 entspricht der Startadresse. Die Startadresse des zweiten Geräts muss hinter allen belegten Kanälen des ersten liegen.
+Die Offsets sind nullbasiert: Offset 0 entspricht der Startadresse. `fixed_channels` hält Strobe, Effektmodus und Geschwindigkeit auf null. Dadurch bleibt die Weboberfläche auch dann reproduzierbar, wenn vorher ein Automatikprogramm am Scheinwerfer aktiv war.
 
 ## Installation auf dem Raspberry Pi
 
@@ -165,7 +178,7 @@ journalctl -u dmx-controller -n 50 --no-pager
 
 Wenn die Weboberfläche funktioniert, aber kein Licht reagiert:
 
-1. Stimmen 3-Kanal-Modus und Startadressen 1/4 an den Geräten?
+1. Zeigen die Geräte im DMX-Modus die Startadressen `d001` und `d008` an?
 2. Sind `Data-` und `Data+` nicht vertauscht? Beim VMA432 gilt XLR-Pin 2 = Data-, Pin 3 = Data+.
 3. Ist der VMA432 an 5 V, GND und GPIO 14/TX angeschlossen?
 4. Existiert `/dev/ttyAMA0`, und ist der Benutzer in der Gruppe `dialout`?
@@ -185,6 +198,7 @@ pytest -q
 ## Technische Quellen
 
 - [Velleman VMA432 Benutzerhandbuch](https://m.media-amazon.com/images/I/81mam8nSMHL.pdf)
+- [Benutzerhandbuch der 7-Kanal-RGB-Scheinwerfer](https://m.media-amazon.com/images/I/81isdaeK57L.pdf)
 - [Raspberry Pi Dokumentation: UART-Konfiguration](https://www.raspberrypi.com/documentation/computers/configuration.html#configure-uarts)
 - [Raspberry Pi Firmware: Device-Tree-Overlay-Referenz](https://github.com/raspberrypi/firmware/blob/master/boot/overlays/README)
 - [Texas Instruments SN75176B](https://www.ti.com/product/SN75176B)

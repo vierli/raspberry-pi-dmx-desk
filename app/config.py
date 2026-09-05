@@ -16,12 +16,14 @@ class FixtureConfig:
     blue: int
     dimmer: int | None = None
     dimmer_on: int = 255
+    fixed_channels: tuple[tuple[int, int], ...] = ()
 
     @property
     def highest_channel(self) -> int:
         offsets = [self.red, self.green, self.blue]
         if self.dimmer is not None:
             offsets.append(self.dimmer)
+        offsets.extend(offset for offset, _ in self.fixed_channels)
         return self.address + max(offsets)
 
 
@@ -57,6 +59,10 @@ def load_settings(base_dir: Path | None = None) -> Settings:
     occupied: set[int] = set()
     for item in raw.get("fixtures", []):
         channels = item["channels"]
+        fixed_channels = tuple(
+            (int(offset), int(value))
+            for offset, value in item.get("fixed_channels", {}).items()
+        )
         fixture = FixtureConfig(
             id=int(item["id"]),
             name=str(item["name"]),
@@ -66,6 +72,7 @@ def load_settings(base_dir: Path | None = None) -> Settings:
             blue=int(channels["blue"]),
             dimmer=(int(channels["dimmer"]) if "dimmer" in channels else None),
             dimmer_on=int(item.get("dimmer_on", 255)),
+            fixed_channels=fixed_channels,
         )
         if fixture.id in ids:
             raise ValueError(f"Fixture-ID {fixture.id} ist doppelt vergeben")
@@ -76,8 +83,13 @@ def load_settings(base_dir: Path | None = None) -> Settings:
         offsets = [fixture.red, fixture.green, fixture.blue]
         if fixture.dimmer is not None:
             offsets.append(fixture.dimmer)
+        offsets.extend(offset for offset, _ in fixture.fixed_channels)
         if min(offsets) < 0 or len(offsets) != len(set(offsets)):
             raise ValueError(f"Ungültige Kanalzuordnung für {fixture.name}")
+        if not 0 <= fixture.dimmer_on <= 255 or any(
+            not 0 <= value <= 255 for _, value in fixture.fixed_channels
+        ):
+            raise ValueError(f"DMX-Werte für {fixture.name} müssen zwischen 0 und 255 liegen")
         fixture_channels = {fixture.address + offset for offset in offsets}
         if occupied & fixture_channels:
             raise ValueError(f"DMX-Kanäle von {fixture.name} überschneiden sich")
@@ -98,4 +110,3 @@ def load_settings(base_dir: Path | None = None) -> Settings:
         simulation=_bool_env(os.getenv("DMX_SIMULATION")),
         fixtures=tuple(fixtures),
     )
-
