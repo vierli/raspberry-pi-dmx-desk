@@ -109,14 +109,47 @@ Die Offsets sind nullbasiert: Offset 0 entspricht der Startadresse. `fixed_chann
 
 ## Installation auf dem Raspberry Pi
 
-Das Projekt auf den Raspberry Pi kopieren, in den Projektordner wechseln und ausführen:
+### 1. Projekt von GitHub herunterladen
+
+Zuerst Git installieren:
+
+```bash
+sudo apt update
+sudo apt install -y git
+```
+
+Das Repository ist privat. Mit einem bereits bei GitHub hinterlegten SSH-Schlüssel ist das Klonen am einfachsten:
+
+```bash
+cd ~
+git clone git@github.com:vierli/raspberry-pi-dmx-desk.git
+cd raspberry-pi-dmx-desk
+```
+
+Alternativ über HTTPS klonen:
+
+```bash
+cd ~
+git clone https://github.com/vierli/raspberry-pi-dmx-desk.git
+cd raspberry-pi-dmx-desk
+```
+
+Bei einem privaten Repository verlangt GitHub dabei eine Anmeldung. Für HTTPS muss anstelle des GitHub-Passworts ein Personal Access Token verwendet werden. Falls das Repository später öffentlich geschaltet wird, funktioniert der HTTPS-Befehl ohne Anmeldung.
+
+### 2. Anwendung installieren
+
+Im geklonten Projektordner ausführen:
 
 ```bash
 chmod +x scripts/install.sh
 ./scripts/install.sh
 ```
 
-Nach der UART-Konfiguration und dem Neustart:
+Das Installationsskript richtet die Python-Umgebung ein, installiert die Abhängigkeiten, fügt den aktuellen Benutzer zur Gruppe `dialout` hinzu und installiert den systemd-Dienst. Eine bereits vorhandene Datei `/etc/default/dmx-controller` wird dabei nicht überschrieben.
+
+### 3. UART konfigurieren und Dienst starten
+
+Die weiter oben beschriebene UART-Konfiguration durchführen und den Raspberry Pi neu starten. Danach:
 
 ```bash
 sudo systemctl start dmx-controller
@@ -136,6 +169,19 @@ hostname -I
 ```
 
 Der Dienst startet künftig automatisch beim Booten. Er beginnt aus Sicherheitsgründen immer mit beiden Scheinwerfern **ausgeschaltet**.
+
+### Aktualisierungen von GitHub installieren
+
+Neue Versionen lassen sich später direkt aus dem Repository übernehmen:
+
+```bash
+cd ~/raspberry-pi-dmx-desk
+git pull --ff-only
+./scripts/install.sh
+sudo systemctl restart dmx-controller
+```
+
+Eigene Änderungen an `config/fixtures.json` oder anderen versionierten Dateien vor `git pull` committen oder separat sichern. Die lokale Laufzeitkonfiguration in `/etc/default/dmx-controller` bleibt bei einem Update erhalten.
 
 ## Test ohne Hardware
 
