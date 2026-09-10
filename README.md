@@ -147,6 +147,8 @@ chmod +x scripts/install.sh
 
 Das Installationsskript richtet die Python-Umgebung ein, installiert die Abhängigkeiten, fügt den aktuellen Benutzer zur Gruppe `dialout` hinzu und installiert den systemd-Dienst. Eine bereits vorhandene Datei `/etc/default/dmx-controller` wird dabei nicht überschrieben.
 
+Der Projektpfad darf keine Leerzeichen enthalten. Das Installationsskript prüft außerdem die erzeugte systemd-Unit und bricht bei einer ungültigen Einstellung mit einer konkreten Fehlermeldung ab.
+
 ### 3. UART konfigurieren und Dienst starten
 
 Die weiter oben beschriebene UART-Konfiguration durchführen und den Raspberry Pi neu starten. Danach:
